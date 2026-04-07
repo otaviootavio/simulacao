@@ -1,0 +1,146 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage{amsmath}
+\usepackage{geometry}
+
+\geometry{a4paper, margin=1in}
+
+\begin{document}
+
+\section{Definição dos Estados}
+\begin{itemize}
+    \item \textbf{$M_1$}: Operação plena (redundância ativa).
+    \item \textbf{$M_2$}: Operação degradada (falha do Módulo 1 detectada com cobertura $C$).
+    \item \textbf{$M_1 M_2 FC$}: Manutenção corretiva de falha coberta ($FC$).
+    \item \textbf{$M_1 M_2 NC$}: Manutenção de falha não detectada/não coberta ($NC$).
+    \item \textbf{$F$}: Falha total do sistema (indisponível).
+\end{itemize}
+
+\newpage
+\section{Definição das Transições}
+\begin{itemize}
+    \item \textbf{De $M_1$}: Transições para $M_2$, $FC$ ou $NC$ baseadas na taxa de falha $\lambda$ e cobertura $C$.
+    \item \textbf{De $M_2$ e $FC$}: Retorno para $M_1$ via reparo $\mu_c$ ou falha total $F$ via $\lambda$.
+    \item \textbf{De $M_1 M_2 NC$}: Retorno para $M_1$ via manutenção $\mu_p$.
+    \item \textbf{De $F$}: Recuperação total para $M_1$ via manutenção corretiva $\mu_c$.
+\end{itemize}
+
+\newpage
+\section{Equações de Transição ($P \cdot \Delta t$)}
+
+\subsection*{Estado $M_1$}
+\begin{itemize}
+    \item $P(M_1 \to M_2) = \lambda C \Delta t$
+    \item $P(M_1 \to M_1 M_2 FC) = \lambda C \Delta t$
+    \item $P(M_1 \to M_1 M_2 NC) = \lambda (1-C) \Delta t$
+    \item $P(M_1 \to M_1) = 1 - 2\lambda \Delta t$
+\end{itemize}
+
+\subsection*{Estado $M_2$}
+\begin{itemize}
+    \item $P(M_2 \to M_1) = \mu_c \Delta t$
+    \item $P(M_2 \to F) = \lambda \Delta t$
+    \item $P(M_2 \to M_2) = 1 - (\lambda + \mu_c) \Delta t$
+\end{itemize}
+
+\subsection*{Estado $M_1 M_2 FC$}
+\begin{itemize}
+    \item $P(M_1 M_2 FC \to M_1) = \mu_c \Delta t$
+    \item $P(M_1 M_2 FC \to F) = \lambda \Delta t$
+    \item $P(M_1 M_2 FC \to M_1 M_2 FC) = 1 - (\lambda + \mu_c) \Delta t$
+\end{itemize}
+
+\subsection*{Estado $M_1 M_2 NC$}
+\begin{itemize}
+    \item $P(M_1 M_2 NC \to M_1) = \mu_p \Delta t$
+    \item $P(M_1 M_2 NC \to M_1 M_2 NC) = 1 - (\lambda + \mu_p) \Delta t$
+\end{itemize}
+
+\subsection*{Estado $F$}
+\begin{itemize}
+    \item $P(F \to M_1) = \mu_c \Delta t$
+    \item $P(F \to F) = 1 - \mu_c \Delta t$
+\end{itemize}
+
+\newpage
+\section{Equações Diferenciais (Chapman-Kolmogorov)}
+As equações abaixo descrevem a dinâmica do sistema, onde a variação da probabilidade de cada estado no tempo é o balanço entre fluxos de entrada e saída:
+
+\begin{align*}
+\frac{dP_{M1}(t)}{dt} &= - \lambda(1+C) P_{M1}(t) + \mu_c P_{M2}(t) + \mu_c P_{FC}(t) + \mu_p P_{NC}(t) + \mu_c P_F(t) \\
+\frac{dP_{M2}(t)}{dt} &= \lambda C P_{M1}(t) - (\lambda + \mu_c) P_{M2}(t) \\
+\frac{dP_{FC}(t)}{dt} &= \lambda C P_{M1}(t) - (\lambda + \mu_c) P_{FC}(t) \\
+\frac{dP_{NC}(t)}{dt} &= \lambda(1-C) P_{M1}(t) - (\lambda + \mu_p) P_{NC}(t) \\
+\frac{dP_{F}(t)}{dt} &= \lambda P_{M2}(t) + \lambda P_{FC}(t) + \lambda P_{NC}(t) - \mu_c P_F(t)
+\end{align*}
+
+\begin{alignat*}{6}
+\frac{dP_{M1}(t)}{dt} &= -\lambda(1+C) P_{M1}(t) &&+ \mu_c P_{M2}(t) &&+ \mu_c P_{FC}(t) &&+ \mu_p P_{NC}(t) &&+ \mu_c P_F(t) \\
+\frac{dP_{M2}(t)}{dt} &= \phantom{-}\lambda C P_{M1}(t) &&- (\lambda + \mu_c) P_{M2}(t) && && && \\
+\frac{dP_{FC}(t)}{dt} &= \phantom{-}\lambda C P_{M1}(t) && &&- (\lambda + \mu_c) P_{FC}(t) && && \\
+\frac{dP_{NC}(t)}{dt} &= \phantom{-}\lambda(1-C) P_{M1}(t) && && &&- (\lambda + \mu_p) P_{NC}(t) && \\
+\frac{dP_{F}(t)}{dt}  &= &&\phantom{+} \lambda P_{M2}(t) &&+ \lambda P_{FC}(t) &&+ \lambda P_{NC}(t) &&- \mu_c P_F(t)
+\end{alignat*}
+
+
+\begin{alignat*}{6}
+\frac{dP_{M1}(t)}{dt} &= -\lambda(1+C) P_{M1}(t) &&+ \mu_c P_{M2}(t) &&+ \mu_c P_{FC}(t) &&+ \mu_p P_{NC}(t) &&+ \mu_c P_F(t) \\
+\frac{dP_{M2}(t)}{dt} &= \phantom{-}\lambda C P_{M1}(t) &&- (\lambda + \mu_c) P_{M2}(t) &&+ 0 P_{FC}(t) &&+ 0 P_{NC}(t) &&+ 0 P_F(t) \\
+\frac{dP_{FC}(t)}{dt} &= \phantom{-}\lambda C P_{M1}(t) &&+ 0 P_{M2}(t) &&- (\lambda + \mu_c) P_{FC}(t) &&+ 0 P_{NC}(t) &&+ 0 P_F(t) \\
+\frac{dP_{NC}(t)}{dt} &= \phantom{-}\lambda(1-C) P_{M1}(t) &&+ 0 P_{M2}(t) &&+ 0 P_{FC}(t) &&- (\lambda + \mu_p) P_{NC}(t) &&+ 0 P_F(t) \\
+\frac{dP_{F}(t)}{dt}  &= \phantom{-} 0 P_{M1}(t) &&+ \lambda P_{M2}(t) &&+ \lambda P_{FC}(t) &&+ \lambda P_{NC}(t) &&- \mu_c P_F(t)
+\end{alignat*}
+
+Onde a condição de normalização é dada por $\sum P_i(t) = 1$.
+
+
+\newpage
+\section{Forma Matricial ($\dot{\mathbf{P}}(t) = \mathbf{P}(t) \mathbf{Q}$)}
+
+Definindo o vetor de probabilidades de estado como $\mathbf{P}(t) = [P_{M1}(t), P_{M2}(t), P_{FC}(t), P_{NC}(t), P_F(t)]$, o sistema pode ser escrito como:
+
+\[
+\begin{bmatrix} 
+\dot{P}_{M1}(t) \\ \dot{P}_{M2}(t) \\ \dot{P}_{FC}(t) \\ \dot{P}_{NC}(t) \\ \dot{P}_{F}(t) 
+\end{bmatrix}^T = 
+\begin{bmatrix} 
+P_{M1}(t) \\ P_{M2}(t) \\ P_{FC}(t) \\ P_{NC}(t) \\ P_{F}(t) 
+\end{bmatrix}^T
+\begin{bmatrix}
+-\lambda(1+C) & \lambda C & \lambda C & \lambda(1-C) & 0 \\
+\mu_c & -(\lambda + \mu_c) & 0 & 0 & \lambda \\
+\mu_c & 0 & -(\lambda + \mu_c) & 0 & \lambda \\
+\mu_p & 0 & 0 & -(\lambda + \mu_p) & \lambda \\
+\mu_c & 0 & 0 & 0 & -\mu_c
+\end{bmatrix}
+\]
+
+\subsection*{Resumo da Notação}
+\begin{itemize}
+    \item $\mathbf{P}(t)$: Vetor linha das probabilidades de cada estado no tempo $t$.
+    \item $\dot{\mathbf{P}}(t)$: Vetor das derivadas temporais ($\frac{dP}{dt}$).
+    \item $\mathbf{Q}$: Matriz de taxas de transição (Matriz Geratriz).
+\end{itemize}
+
+Para encontrar a \textbf{Disponibilidade em Regime Permanente}, resolve-se o sistema linear onde $\dot{\mathbf{P}}(t) = 0$:
+\[ \mathbf{\pi} \mathbf{Q} = \mathbf{0} \quad \text{sujeito a} \quad \sum \pi_i = 1 \]
+
+\newpage    
+\section{Matriz Geratriz (Matriz Q)}
+A matriz de taxas de transição $Q$ organiza as intensidades de transição entre os estados. Ela é construída de forma que a soma de cada linha seja igual a zero:
+
+\[
+Q = 
+\begin{bmatrix}
+-\lambda(1+C) & \lambda C & \lambda C & \lambda(1-C) & 0 \\
+\mu_c & -(\lambda + \mu_c) & 0 & 0 & \lambda \\
+\mu_c & 0 & -(\lambda + \mu_c) & 0 & \lambda \\
+\mu_p & 0 & 0 & -(\lambda + \mu_p) & \lambda \\
+\mu_c & 0 & 0 & 0 & -\mu_c
+\end{bmatrix}
+\]
+
+Onde a ordem dos estados nas linhas e colunas segue: $\{M_1, M_2, FC, NC, F\}$.
+
+\end{document}

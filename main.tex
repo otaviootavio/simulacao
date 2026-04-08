@@ -2,145 +2,365 @@
 \usepackage[utf8]{inputenc}
 \usepackage[portuguese]{babel}
 \usepackage{amsmath}
+\usepackage{graphicx}
 \usepackage{geometry}
 
 \geometry{a4paper, margin=1in}
 
 \begin{document}
 
+% ──────────────────────────────────────────────
+\section*{Racional da Modelagem}
+
+O sistema é representado por um conjunto de estados mutuamente exclusivos.
+Em cada instante $t$, o sistema ocupa exatamente um desses estados, e
+associa-se a cada estado $i$ uma probabilidade $P_i(t)$, que expressa a
+chance de o sistema encontrar-se naquele estado no instante $t$. Por
+construção, essas probabilidades satisfazem a condição de normalização:
+\[
+    \sum_{i} P_i(t) = 1, \quad \forall\, t \geq 0.
+\]
+
+A evolução de $P_i(t)$ é determinada pelas taxas de transição entre os
+estados. Para um intervalo de tempo suficientemente pequeno $\Delta t$, a
+probabilidade de ocorrer mais de uma transição é da ordem de
+$O(\Delta t^2)$ e, portanto, desprezível. Com isso, a probabilidade de o
+sistema estar em um estado no instante $t + \Delta t$ é a soma das
+contribuições de cada estado em $t$, ponderada pela respectiva
+probabilidade de transição em $\Delta t$.
+
+% ──────────────────────────────────────────────
+\newpage
 \section{Definição dos Estados}
+
 \begin{itemize}
-    \item \textbf{$M_1$}: Operação plena (redundância ativa).
-    \item \textbf{$M_2$}: Operação degradada (falha do Módulo 1 detectada com cobertura $C$).
-    \item \textbf{$M_1 M_2 FC$}: Manutenção corretiva de falha coberta ($FC$).
-    \item \textbf{$M_1 M_2 NC$}: Manutenção de falha não detectada/não coberta ($NC$).
+    \item \textbf{$M_1$}: Operação plena com redundância ativa (dois módulos funcionando).
+    \item \textbf{$M_2$}: Operação degradada com reparo corretivo em andamento (falha de um módulo detectada com cobertura $C$).
+    \item \textbf{$FC$}: Falha coberta aguardando reparo corretivo (sistema ainda operacional, um módulo em manutenção).
+    \item \textbf{$NC$}: Falha não coberta aguardando reparo preventivo (sistema ainda operacional, reparo mais lento).
     \item \textbf{$F$}: Falha total do sistema (indisponível).
 \end{itemize}
 
+% ──────────────────────────────────────────────
 \newpage
-\section{Definição das Transições}
-\begin{itemize}
-    \item \textbf{De $M_1$}: Transições para $M_2$, $FC$ ou $NC$ baseadas na taxa de falha $\lambda$ e cobertura $C$.
-    \item \textbf{De $M_2$ e $FC$}: Retorno para $M_1$ via reparo $\mu_c$ ou falha total $F$ via $\lambda$.
-    \item \textbf{De $M_1 M_2 NC$}: Retorno para $M_1$ via manutenção $\mu_p$.
-    \item \textbf{De $F$}: Recuperação total para $M_1$ via manutenção corretiva $\mu_c$.
-\end{itemize}
+\section{Equações de Transição em $\Delta t$}
 
-\newpage
-\section{Equações de Transição ($P \cdot \Delta t$)}
+Para cada estado, listam-se as probabilidades de transição durante um
+intervalo $\Delta t$ suficientemente pequeno.
 
 \subsection*{Estado $M_1$}
 \begin{itemize}
-    \item $P(M_1 \to M_2) = \lambda C \Delta t$
-    \item $P(M_1 \to M_1 M_2 FC) = \lambda C \Delta t$
-    \item $P(M_1 \to M_1 M_2 NC) = \lambda (1-C) \Delta t$
-    \item $P(M_1 \to M_1) = 1 - 2\lambda \Delta t$
+    \item $P(M_1 \to M_2)   = \lambda C \,\Delta t$
+    \item $P(M_1 \to FC)    = \lambda C \,\Delta t$
+    \item $P(M_1 \to NC)    = \lambda (1-C)\,\Delta t$
+    \item $P(M_1 \to F)     = \lambda (1-C)\,\Delta t$
+    \item $P(M_1 \to M_1)   = 1 - 2\lambda\,\Delta t$
 \end{itemize}
 
 \subsection*{Estado $M_2$}
 \begin{itemize}
-    \item $P(M_2 \to M_1) = \mu_c \Delta t$
-    \item $P(M_2 \to F) = \lambda \Delta t$
-    \item $P(M_2 \to M_2) = 1 - (\lambda + \mu_c) \Delta t$
+    \item $P(M_2 \to M_1) = \mu_c\,\Delta t$
+    \item $P(M_2 \to F)   = \lambda\,\Delta t$
+    \item $P(M_2 \to M_2) = 1 - (\lambda + \mu_c)\,\Delta t$
 \end{itemize}
 
-\subsection*{Estado $M_1 M_2 FC$}
+\subsection*{Estado $FC$}
 \begin{itemize}
-    \item $P(M_1 M_2 FC \to M_1) = \mu_c \Delta t$
-    \item $P(M_1 M_2 FC \to F) = \lambda \Delta t$
-    \item $P(M_1 M_2 FC \to M_1 M_2 FC) = 1 - (\lambda + \mu_c) \Delta t$
+    \item $P(FC \to M_1) = \mu_c\,\Delta t$
+    \item $P(FC \to F)   = \lambda\,\Delta t$
+    \item $P(FC \to FC)  = 1 - (\lambda + \mu_c)\,\Delta t$
 \end{itemize}
 
-\subsection*{Estado $M_1 M_2 NC$}
+\subsection*{Estado $NC$}
 \begin{itemize}
-    \item $P(M_1 M_2 NC \to M_1) = \mu_p \Delta t$
-    \item $P(M_1 M_2 NC \to M_1 M_2 NC) = 1 - (\lambda + \mu_p) \Delta t$
+    \item $P(NC \to M_1) = \mu_p\,\Delta t$
+    \item $P(NC \to F)   = \lambda\,\Delta t$
+    \item $P(NC \to NC)  = 1 - (\lambda + \mu_p)\,\Delta t$
 \end{itemize}
 
 \subsection*{Estado $F$}
 \begin{itemize}
-    \item $P(F \to M_1) = \mu_c \Delta t$
-    \item $P(F \to F) = 1 - \mu_c \Delta t$
+    \item $P(F \to M_1) = \mu_c\,\Delta t$
+    \item $P(F \to F)   = 1 - \mu_c\,\Delta t$
 \end{itemize}
 
+% ──────────────────────────────────────────────
 \newpage
-\section{Equações Diferenciais (Chapman-Kolmogorov)}
-As equações abaixo descrevem a dinâmica do sistema, onde a variação da probabilidade de cada estado no tempo é o balanço entre fluxos de entrada e saída:
+\section{Derivação das Equações Diferenciais}
 
+O passo a passo a seguir ilustra como as probabilidades de transição
+definidas na seção anterior conduzem a equações diferenciais. O
+procedimento é apresentado em detalhe para o estado $M_1$ e depois
+generalizado.
+
+\subsection*{Balanço de probabilidade para $M_1$ em $t + \Delta t$}
+
+O sistema estará em $M_1$ no instante $t + \Delta t$ se, e somente se,
+uma das seguintes situações ocorrer:
+
+\begin{itemize}
+    \item O sistema já estava em $M_1$ em $t$ e nenhuma falha ocorreu,
+          com probabilidade $P_{M_1}(t)\cdot(1 - 2\lambda\,\Delta t)$.
+    \item O sistema estava em $M_2$ em $t$ e um reparo corretivo ocorreu,
+          com probabilidade $P_{M_2}(t)\cdot\mu_c\,\Delta t$.
+    \item O sistema estava em $FC$ em $t$ e um reparo corretivo ocorreu,
+          com probabilidade $P_{FC}(t)\cdot\mu_c\,\Delta t$.
+    \item O sistema estava em $NC$ em $t$ e um reparo preventivo ocorreu,
+          com probabilidade $P_{NC}(t)\cdot\mu_p\,\Delta t$.
+    \item O sistema estava em $F$ em $t$ e um reparo corretivo restaurou
+          o sistema, com probabilidade $P_{F}(t)\cdot\mu_c\,\Delta t$.
+\end{itemize}
+
+Somando essas parcelas:
 \begin{align*}
-\frac{dP_{M1}(t)}{dt} &= - \lambda(1+C) P_{M1}(t) + \mu_c P_{M2}(t) + \mu_c P_{FC}(t) + \mu_p P_{NC}(t) + \mu_c P_F(t) \\
-\frac{dP_{M2}(t)}{dt} &= \lambda C P_{M1}(t) - (\lambda + \mu_c) P_{M2}(t) \\
-\frac{dP_{FC}(t)}{dt} &= \lambda C P_{M1}(t) - (\lambda + \mu_c) P_{FC}(t) \\
-\frac{dP_{NC}(t)}{dt} &= \lambda(1-C) P_{M1}(t) - (\lambda + \mu_p) P_{NC}(t) \\
-\frac{dP_{F}(t)}{dt} &= \lambda P_{M2}(t) + \lambda P_{FC}(t) + \lambda P_{NC}(t) - \mu_c P_F(t)
+P_{M_1}(t + \Delta t)
+    &= P_{M_1}(t)\,(1 - 2\lambda\,\Delta t) \\
+    &\quad + P_{M_2}(t)\,\mu_c\,\Delta t \\
+    &\quad + P_{FC}(t)\,\mu_c\,\Delta t \\
+    &\quad + P_{NC}(t)\,\mu_p\,\Delta t \\
+    &\quad + P_{F}(t)\,\mu_c\,\Delta t.
 \end{align*}
 
-\begin{alignat*}{6}
-\frac{dP_{M1}(t)}{dt} &= -\lambda(1+C) P_{M1}(t) &&+ \mu_c P_{M2}(t) &&+ \mu_c P_{FC}(t) &&+ \mu_p P_{NC}(t) &&+ \mu_c P_F(t) \\
-\frac{dP_{M2}(t)}{dt} &= \phantom{-}\lambda C P_{M1}(t) &&- (\lambda + \mu_c) P_{M2}(t) && && && \\
-\frac{dP_{FC}(t)}{dt} &= \phantom{-}\lambda C P_{M1}(t) && &&- (\lambda + \mu_c) P_{FC}(t) && && \\
-\frac{dP_{NC}(t)}{dt} &= \phantom{-}\lambda(1-C) P_{M1}(t) && && &&- (\lambda + \mu_p) P_{NC}(t) && \\
-\frac{dP_{F}(t)}{dt}  &= &&\phantom{+} \lambda P_{M2}(t) &&+ \lambda P_{FC}(t) &&+ \lambda P_{NC}(t) &&- \mu_c P_F(t)
-\end{alignat*}
+\subsection*{Passagem ao limite $\Delta t \to 0$}
 
+Isolando o incremento de probabilidade:
+\[
+P_{M_1}(t + \Delta t) - P_{M_1}(t)
+    = \bigl(
+        -2\lambda\,P_{M_1}(t)
+        + \mu_c\,P_{M_2}(t)
+        + \mu_c\,P_{FC}(t)
+        + \mu_p\,P_{NC}(t)
+        + \mu_c\,P_F(t)
+      \bigr)\Delta t.
+\]
 
-\begin{alignat*}{6}
-\frac{dP_{M1}(t)}{dt} &= -\lambda(1+C) P_{M1}(t) &&+ \mu_c P_{M2}(t) &&+ \mu_c P_{FC}(t) &&+ \mu_p P_{NC}(t) &&+ \mu_c P_F(t) \\
-\frac{dP_{M2}(t)}{dt} &= \phantom{-}\lambda C P_{M1}(t) &&- (\lambda + \mu_c) P_{M2}(t) &&+ 0 P_{FC}(t) &&+ 0 P_{NC}(t) &&+ 0 P_F(t) \\
-\frac{dP_{FC}(t)}{dt} &= \phantom{-}\lambda C P_{M1}(t) &&+ 0 P_{M2}(t) &&- (\lambda + \mu_c) P_{FC}(t) &&+ 0 P_{NC}(t) &&+ 0 P_F(t) \\
-\frac{dP_{NC}(t)}{dt} &= \phantom{-}\lambda(1-C) P_{M1}(t) &&+ 0 P_{M2}(t) &&+ 0 P_{FC}(t) &&- (\lambda + \mu_p) P_{NC}(t) &&+ 0 P_F(t) \\
-\frac{dP_{F}(t)}{dt}  &= \phantom{-} 0 P_{M1}(t) &&+ \lambda P_{M2}(t) &&+ \lambda P_{FC}(t) &&+ \lambda P_{NC}(t) &&- \mu_c P_F(t)
-\end{alignat*}
+Dividindo por $\Delta t$ e tomando o limite:
+\[
+\frac{dP_{M_1}(t)}{dt}
+    = -2\lambda\,P_{M_1}(t)
+      + \mu_c\,P_{M_2}(t)
+      + \mu_c\,P_{FC}(t)
+      + \mu_p\,P_{NC}(t)
+      + \mu_c\,P_F(t).
+\]
 
-Onde a condição de normalização é dada por $\sum P_i(t) = 1$.
+Aplicando o mesmo procedimento aos demais estados, obtém-se o sistema
+completo apresentado a seguir.
 
-
+% ──────────────────────────────────────────────
 \newpage
-\section{Forma Matricial ($\dot{\mathbf{P}}(t) = \mathbf{P}(t) \mathbf{Q}$)}
+\section{Sistema de Equações Diferenciais}
 
-Definindo o vetor de probabilidades de estado como $\mathbf{P}(t) = [P_{M1}(t), P_{M2}(t), P_{FC}(t), P_{NC}(t), P_F(t)]$, o sistema pode ser escrito como:
+A variação temporal da probabilidade de cada estado é o balanço entre
+os fluxos de entrada e de saída:
+
+\begin{alignat*}{2}
+\frac{dP_{M_1}}{dt} &= -2\lambda\,P_{M_1}
+    &&+ \mu_c\,P_{M_2} + \mu_c\,P_{FC} + \mu_p\,P_{NC} + \mu_c\,P_F \\[4pt]
+\frac{dP_{M_2}}{dt} &= \phantom{-}\lambda C\,P_{M_1}
+    &&- (\lambda + \mu_c)\,P_{M_2} \\[4pt]
+\frac{dP_{FC}}{dt}  &= \phantom{-}\lambda C\,P_{M_1}
+    &&- (\lambda + \mu_c)\,P_{FC} \\[4pt]
+\frac{dP_{NC}}{dt}  &= \phantom{-}\lambda(1-C)\,P_{M_1}
+    &&- (\lambda + \mu_p)\,P_{NC} \\[4pt]
+\frac{dP_{F}}{dt}   &= \phantom{-}\lambda(1-C)\,P_{M_1}
+    &&+ \lambda\,P_{M_2} + \lambda\,P_{FC} + \lambda\,P_{NC} - \mu_c\,P_F
+\end{alignat*}
+
+com a condição de normalização $\sum_i P_i(t) = 1$.
+
+% ──────────────────────────────────────────────
+\newpage
+\section{Forma Matricial}
+
+\subsection*{Notação vetorial}
+
+Definindo o vetor linha de probabilidades
+$\mathbf{P}(t) = [P_{M_1}(t),\; P_{M_2}(t),\; P_{FC}(t),\; P_{NC}(t),\; P_F(t)]$,
+o sistema pode ser escrito de forma compacta como:
+\[
+    \dot{\mathbf{P}}(t) = \mathbf{P}(t)\,\mathbf{Q},
+\]
+onde $\mathbf{Q}$ é a \textbf{matriz geradora}, cujos coeficientes são as taxas de transição levantadas nas seções anteriores.
+
+\subsection*{Matriz geradora $\mathbf{Q}$}
+
+Na ordem de estados $\{M_1, M_2, FC, NC, F\}$:
 
 \[
-\begin{bmatrix} 
-\dot{P}_{M1}(t) \\ \dot{P}_{M2}(t) \\ \dot{P}_{FC}(t) \\ \dot{P}_{NC}(t) \\ \dot{P}_{F}(t) 
-\end{bmatrix}^T = 
-\begin{bmatrix} 
-P_{M1}(t) \\ P_{M2}(t) \\ P_{FC}(t) \\ P_{NC}(t) \\ P_{F}(t) 
-\end{bmatrix}^T
+\mathbf{Q} =
 \begin{bmatrix}
--\lambda(1+C) & \lambda C & \lambda C & \lambda(1-C) & 0 \\
-\mu_c & -(\lambda + \mu_c) & 0 & 0 & \lambda \\
-\mu_c & 0 & -(\lambda + \mu_c) & 0 & \lambda \\
-\mu_p & 0 & 0 & -(\lambda + \mu_p) & \lambda \\
-\mu_c & 0 & 0 & 0 & -\mu_c
+-2\lambda       & \lambda C          & \lambda C          & \lambda(1-C)       & \lambda(1-C) \\
+\mu_c           & -(\lambda + \mu_c) & 0                  & 0                  & \lambda      \\
+\mu_c           & 0                  & -(\lambda + \mu_c) & 0                  & \lambda      \\
+\mu_p           & 0                  & 0                  & -(\lambda + \mu_p) & \lambda      \\
+\mu_c           & 0                  & 0                  & 0                  & -\mu_c
 \end{bmatrix}
 \]
 
-\subsection*{Resumo da Notação}
-\begin{itemize}
-    \item $\mathbf{P}(t)$: Vetor linha das probabilidades de cada estado no tempo $t$.
-    \item $\dot{\mathbf{P}}(t)$: Vetor das derivadas temporais ($\frac{dP}{dt}$).
-    \item $\mathbf{Q}$: Matriz de taxas de transição (Matriz Geratriz).
-\end{itemize}
+% ──────────────────────────────────────────────
+\newpage
+\section{Disponibilidade $A(t)$}
 
-Para encontrar a \textbf{Disponibilidade em Regime Permanente}, resolve-se o sistema linear onde $\dot{\mathbf{P}}(t) = 0$:
-\[ \mathbf{\pi} \mathbf{Q} = \mathbf{0} \quad \text{sujeito a} \quad \sum \pi_i = 1 \]
-
-\newpage    
-\section{Matriz Geratriz (Matriz Q)}
-A matriz de taxas de transição $Q$ organiza as intensidades de transição entre os estados. Ela é construída de forma que a soma de cada linha seja igual a zero:
-
+A condição inicial $\mathbf{P}(0) = \mathbf{P}_0 = [1, 0, 0, 0, 0]$ representa o sistema em plena operação no instante $t = 0$, isto é, toda a probabilidade concentrada no estado $M_1$. A disponibilidade do sistema no instante $t$ é a probabilidade de ele se encontrar em qualquer estado operacional, ou seja, em qualquer estado diferente de $F$:
 \[
-Q = 
-\begin{bmatrix}
--\lambda(1+C) & \lambda C & \lambda C & \lambda(1-C) & 0 \\
-\mu_c & -(\lambda + \mu_c) & 0 & 0 & \lambda \\
-\mu_c & 0 & -(\lambda + \mu_c) & 0 & \lambda \\
-\mu_p & 0 & 0 & -(\lambda + \mu_p) & \lambda \\
-\mu_c & 0 & 0 & 0 & -\mu_c
-\end{bmatrix}
+    A(t) = P_{M_1}(t) + P_{M_2}(t) + P_{FC}(t) + P_{NC}(t).
 \]
 
-Onde a ordem dos estados nas linhas e colunas segue: $\{M_1, M_2, FC, NC, F\}$.
+Como as probabilidades de todos os estados somam 1 para todo $t$, essa expressão equivale a:
+\[
+    \boxed{A(t) = 1 - P_F(t).}
+\]
+
+Portanto, basta acompanhar a evolução de $P_F(t)$ para obter a
+disponibilidade do sistema em qualquer instante.
+
+% ──────────────────────────────────────────────
+\newpage
+\section{Disponibilidade em Regime Permanente}
+
+\subsection*{Condição de equilíbrio}
+
+Após um tempo suficientemente longo, as probabilidades $P_i(t)$ deixam de
+variar. Denotando os valores estacionários por $\pi_i$, impõe-se:
+\[
+    \frac{dP_i}{dt} = 0, \quad \forall\, i.
+\]
+
+A condição de normalização continua válida:
+\[
+    \pi_{M_1} + \pi_{M_2} + \pi_{FC} + \pi_{NC} + \pi_F = 1.
+\]
+
+\subsection*{Sistema de equações de balanço}
+
+Substituindo $dP_i/dt = 0$ no sistema da Seção~4, obtém-se:
+
+\begin{alignat*}{2}
+0 &= -2\lambda\,\pi_{M_1}
+    &&+ \mu_c\,\pi_{M_2} + \mu_c\,\pi_{FC} + \mu_p\,\pi_{NC} + \mu_c\,\pi_F \\[4pt]
+0 &= \phantom{-}\lambda C\,\pi_{M_1}
+    &&- (\lambda + \mu_c)\,\pi_{M_2} \\[4pt]
+0 &= \phantom{-}\lambda C\,\pi_{M_1}
+    &&- (\lambda + \mu_c)\,\pi_{FC} \\[4pt]
+0 &= \phantom{-}\lambda(1-C)\,\pi_{M_1}
+    &&- (\lambda + \mu_p)\,\pi_{NC} \\[4pt]
+0 &= \phantom{-}\lambda(1-C)\,\pi_{M_1}
+    &&+ \lambda\,\pi_{M_2} + \lambda\,\pi_{FC} + \lambda\,\pi_{NC} - \mu_c\,\pi_F
+\end{alignat*}
+
+\subsection*{Forma matricial}
+
+As cinco equações acima são linearmente dependentes. Por isso, substitui-se
+a última delas pela condição de normalização. O sistema resultante é:
+
+\[
+\begin{bmatrix}
+\pi_{M_1} \\ \pi_{M_2} \\ \pi_{FC} \\ \pi_{NC} \\ \pi_F
+\end{bmatrix}^{T}
+\begin{bmatrix}
+-2\lambda       & \lambda C          & \lambda C          & \lambda(1-C)       & 1 \\
+\mu_c           & -(\lambda + \mu_c) & 0                  & 0                  & 1 \\
+\mu_c           & 0                  & -(\lambda + \mu_c) & 0                  & 1 \\
+\mu_p           & 0                  & 0                  & -(\lambda + \mu_p) & 1 \\
+\mu_c           & 0                  & 0                  & 0                  & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 \\ 0 \\ 0 \\ 0 \\ 1
+\end{bmatrix}^{T}
+\]
+
+A solução desse sistema linear fornece todas as probabilidades estacionárias,
+e a disponibilidade em regime permanente é:
+\[
+    \boxed{A_{ss} = 1 - \pi_F.}
+\]
+
+% ──────────────────────────────────────────────
+\newpage
+\section{Simulação por Discretização Temporal}
+
+O vetor $\mathbf{P}^{(k)} = [P_{M_1}^{(k)},\, P_{M_2}^{(k)},\, P_{FC}^{(k)},\,
+P_{NC}^{(k)},\, P_F^{(k)}]$ contém a probabilidade de o sistema estar em cada
+um dos cinco estados no instante $t^{(k)} = k\,\Delta t$. No instante $k = 0$,
+o sistema está em plena operação com redundância ativa, ou seja, com certeza
+no estado $M_1$:
+\[
+    \mathbf{P}^{(0)} = [1,\; 0,\; 0,\; 0,\; 0].
+\]
+
+\subsection*{Do instante 0 para o instante 1}
+
+Após um intervalo $\Delta t$, a probabilidade de estar em $M_1$ é a soma
+das contribuições de todos os estados que podem chegar a $M_1$, ponderadas
+pelas probabilidades de transição definidas na Seção~2:
+\begin{align*}
+P_{M_1}^{(1)} &= P_{M_1}^{(0)}\,(1 - 2\lambda\,\Delta t)
+               + P_{M_2}^{(0)}\,\mu_c\,\Delta t
+               + P_{FC}^{(0)}\,\mu_c\,\Delta t
+               + P_{NC}^{(0)}\,\mu_p\,\Delta t
+               + P_{F}^{(0)}\,\mu_c\,\Delta t.
+\end{align*}
+
+O mesmo balanço vale para cada um dos outros quatro estados. Escrevendo
+os cinco balanços simultaneamente em notação matricial, obtém-se:
+\[
+    \mathbf{P}^{(1)} = \mathbf{P}^{(0)}\,\mathbf{T},
+\]
+onde $\mathbf{T}$ é a \textbf{matriz de transição} cujo elemento $(i,j)$
+é a probabilidade de ir do estado $i$ para o estado $j$ em $\Delta t$.
+Comparando com a matriz geradora $\mathbf{Q}$ da Seção~5 — cujos
+elementos fora da diagonal são as taxas $q_{ij}$ e cuja diagonal é
+$q_{ii} = -\sum_{j \neq i} q_{ij}$ — essa matriz de transição é:
+\[
+    \mathbf{T} = \mathbf{I} + \mathbf{Q}\,\Delta t,
+\]
+onde $\mathbf{I}$ é a matriz identidade $5 \times 5$. O termo
+$q_{ij}\,\Delta t$ fora da diagonal é a probabilidade de transição
+$i \to j$, e o termo $1 + q_{ii}\,\Delta t$ na diagonal é a
+probabilidade de permanecer em $i$, conforme a Seção~2.
+
+\subsection*{Do instante 1 para o instante 2}
+
+Com $\mathbf{P}^{(1)}$ calculado, o mesmo balanço se repete usando
+a mesma matriz $\mathbf{T}$:
+\[
+    \mathbf{P}^{(2)} = \mathbf{P}^{(1)}\,\mathbf{T}.
+\]
+
+\subsection*{Do instante $k$ para o instante $k+1$}
+
+O padrão se generaliza para qualquer passo:
+\[
+    \mathbf{P}^{(k+1)} = \mathbf{P}^{(k)}\,\mathbf{T},
+    \quad k = 0, 1, \ldots, N-1.
+\]
+
+A aproximação é válida enquanto $\Delta t$ for pequeno o suficiente para
+que a probabilidade de duas transições ocorrerem no mesmo intervalo seja
+desprezível, ou seja, $(\lambda\,\Delta t)(\mu_c\,\Delta t) = O(\Delta t^2)
+\approx 0$ — a mesma hipótese da Seção~1.
+
+\subsection*{Disponibilidade a cada passo}
+
+Em cada instante $k$, a probabilidade de falha total é $P_F^{(k)}$,
+a quinta componente de $\mathbf{P}^{(k)}$. A disponibilidade é:
+\[
+    A^{(k)} = 1 - P_F^{(k)}.
+\]
+
+À medida que $k$ cresce, $A^{(k)}$ converge para $A_{ss}$, conforme
+ilustrado na Figura~\ref{fig:disponibilidade}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{disponibilidade.png}
+    \caption{Disponibilidade $A(t)$ obtida pela discretização temporal com
+             $\Delta t$ fixo. A linha tracejada indica o valor estacionário
+             $A_{ss}$ calculado pela inversão matricial da Seção~6.}
+    \label{fig:disponibilidade}
+\end{figure}
 
 \end{document}
